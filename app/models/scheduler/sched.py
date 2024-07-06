@@ -1,7 +1,6 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
-import pytz
-
+from app.utils.utils import time_fmt
 
 
 # 唯一全局變量 用來做執行時間測試! 勿修改
@@ -16,7 +15,6 @@ class Once:
         self.scheduler.add_job(fn,'interval',seconds= self.interval)
         self.lasttime = sync_once_last_execute_time # 初始化最近執行時間
         self.time_with_buffer = buffer + interval
-        self.timezone = pytz.timezone('Asia/Taipei')
         self.initflag = False # 初始化旗標
 
     def start(self):
@@ -33,17 +31,12 @@ class Once:
             return "已關閉"
         return "無效操作:未初始化即關閉"
 
-    def time_opt(self):
-        time = self.lasttime.astimezone(self.timezone)
-        utc_offset = time.utcoffset().total_seconds() / 3600
-        utc_offset_str = f"UTC{'+' if utc_offset >= 0 else ''}{int(utc_offset)}"
-        return time.strftime(f"%Y-%m-%d %H:%M:%S {utc_offset_str}")
 
     def is_alive(self):
         if self.initflag:
             now = datetime.now()
             diff = now - self.lasttime
             if diff.seconds > self.time_with_buffer :
-                return "[請注意排程器可能故障][上次執行時間:{tm}][相距:{df}秒]".format(tm= self.time_opt(), df= diff.seconds)
-            return "[正常運行中][上次執行時間:{tm}][相距:{df}秒]".format(tm= self.time_opt(), df= diff.seconds)
+                return "[請注意排程器可能故障][上次執行時間:{tm}][相距:{df}秒]".format(tm= time_fmt(self.lasttime), df= diff.seconds)
+            return "[正常運行中][上次執行時間:{tm}][相距:{df}秒]".format(tm= time_fmt(self.lasttime), df= diff.seconds)
         return "[無效操作:未初始化]"
