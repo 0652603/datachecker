@@ -1,6 +1,12 @@
 import uvicorn
 
-# source venv/Scripts/activate
+# source .venv/Scripts/activate
+# python main.py
+# --------- API ---------
+# localhost:8000/start
+# localhost:8000/shutdown
+# localhost:8000/isalive
+
 
 # 是否需要做reload(動態更新:當服務on起時每次更新儲存專案都會刷新服務)
 is_reload = True
