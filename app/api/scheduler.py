@@ -4,7 +4,7 @@ from datetime import datetime
 from app.models.scheduler.sched import Once
 from app.utils.utils import time_fmt
 from app.models.analysis.ana import start_ana
-from app.config.config import *
+from app.config.config import check_interval, check_buffer
 
 
 # 創建Once實例

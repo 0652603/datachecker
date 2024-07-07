@@ -1,10 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from app.utils.utils import time_fmt
-
-
-# 唯一全局變量 用來做執行時間測試! 勿修改
-sync_once_last_execute_time = datetime.now()
+from app.config.config import sync_once_last_execute_time
 
 
 # 一個單例排程器 每隔 interval 秒數 固定執行一次 fn 函數 並更新最後執行時間 檢查時允許誤差在buffer內
