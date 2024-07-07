@@ -1,11 +1,14 @@
 from fastapi import FastAPI
 from app.api import scheduler
 import logging
+from app.models.analysis.ana import start_ana
+from app.models.scheduler.sched import Once
+
 
 # 配置基本Log INFO
 logging.basicConfig(level=logging.INFO)
 
-# 起一個服務 app
+# 一個服務 app :FastApi
 app = FastAPI()
 
 '''以下添加路由'''
