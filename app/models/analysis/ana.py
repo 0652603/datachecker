@@ -2,6 +2,7 @@ from app.models.bot.lark.msg import alert
 from datetime import datetime
 import app.config.glob as glob
 import pytz
+from app.models.analysis.check_if_win_too_much.checker import check_if_win_too_much
 
 def analysis():
     ana_time = datetime.now(pytz.timezone('Asia/Taipei'))
@@ -20,5 +21,7 @@ def ana_by_case(ana_time:datetime):
     url = None
 
     # ToDo 所有檢查
-    is_alert = True
+
+    # Step1 玩家異常贏分
+    is_alert,trigger_time,source,event,info,url=check_if_win_too_much(ana_time)
     return is_alert,trigger_time,source,event,info,url
