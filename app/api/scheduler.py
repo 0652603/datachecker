@@ -3,12 +3,12 @@ from app.models.bot.lark.msg import alert
 from datetime import datetime
 from app.models.scheduler.sched import Once
 from app.utils.utils import time_fmt
-from app.models.analysis.ana import start_ana
+from app.models.analysis.ana import analysis
 from app.config.glob import check_interval, check_buffer
 
 
 # 創建Once實例
-once = Once(start_ana,check_interval,check_buffer)
+once = Once(analysis,check_interval,check_buffer)
 
 router = APIRouter()
 

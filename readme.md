@@ -19,7 +19,7 @@
   - Mac/Linux/Git bash
 
     ```bash
-    source .venv/bin/activate
+    source .venv/Scripts/activate
     ```
 
 - 依照 requirements.txt 下載依賴包:

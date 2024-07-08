@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.api import scheduler
 import logging
-from app.models.analysis.ana import start_ana
+from app.models.analysis.ana import analysis
 from app.models.scheduler.sched import Once
 
 
