@@ -108,7 +108,7 @@ def judge_history_RTP(df):
 
 def get_df_return_abnormal_info(df):
     if df is not None and not df.empty:
-        df['add_time'] = pd.to_datetime(df['add_time'])
+        df.loc[:,'add_time'] = pd.to_datetime(df['add_time'])
         df_top3 = df.groupby(['uid', 'gameName'], group_keys=False).apply(lambda x: x.nlargest(3, 'score'))
         df_aggregated = df_top3.groupby(['uid', 'gameName'])['roundId'].agg(tuple).reset_index()
         unique_df = df.loc[df.groupby(['uid', 'gameName'])['add_time'].idxmax()]
@@ -205,7 +205,7 @@ def check_win_days_rate(unique_df,trigger_time, data):
             # 如果太多天都贏:玩家有問題
             one_user_win_days_rate_info=judge_win_days_rate(data["two_week_data"][index])
             if is_enough and (one_user_win_days_rate_info[0]):
-                result['info'] += "[玩家]{uid}\n [遊戲]{game}\n [天數比例]{abinfo}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo= one_user_win_days_rate_info[1])
+                result['info'] += "[玩家]{uid}\n [遊戲]{game}\n [天數比例]{abinfo:.0%}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo= one_user_win_days_rate_info[1])
             
         if len(result["info"])>0 :
             result["is_alert"] = True
@@ -223,7 +223,7 @@ def check_win_rate(unique_df,trigger_time, data):
             # 如果太常贏:玩家有問題
             one_user_win_rate_info=judge_win_rate(data["two_week_data"][index])
             if is_enough and (one_user_win_rate_info[0]):
-                result['info'] += "[玩家]{uid}\n [遊戲]{game}\n [比例]{abinfo}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo= one_user_win_rate_info[1])
+                result['info'] += "[玩家]{uid}\n [遊戲]{game}\n [比例]{abinfo:.0%}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo= one_user_win_rate_info[1])
             
         if len(result["info"])>0 :
             result["is_alert"] = True
@@ -242,7 +242,7 @@ def check_history_rtp(unique_df,trigger_time, data, host_id):
             # 如果歷史RTP太高:玩家有問題
             one_user_history_RTP_info= judge_history_RTP(get_one_user_DB_history_info(host_id,data["uid"][index],data["game"][index]))
             if is_enough and (one_user_history_RTP_info[0]):
-                result['info'] += "[玩家]{uid}\n [遊戲]{game}\n [比例]{abinfo}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo= one_user_history_RTP_info[1])
+                result['info'] += "[玩家]{uid}\n [遊戲]{game}\n [比例]{abinfo:.0%}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo= one_user_history_RTP_info[1])
             
         if len(result["info"])>0 :
             result["is_alert"] = True

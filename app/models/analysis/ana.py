@@ -7,8 +7,8 @@ from app.models.analysis.check_if_win_too_much.checker import check_if_win_too_m
 def analysis():
     ana_time = datetime.now(pytz.timezone('Asia/Taipei'))
     result = ana_by_case(ana_time)
-    if result[0]:
-        alert(result["is_alert"],result["trigger_time"],result["source"],result["event"],result["info"],result["url"])    
+    if result["is_alert"]:
+        alert(result["trigger_time"],result["source"],result["event"],result["info"],result["url"])    
     glob.sync_once_last_execute_time = ana_time
 
 

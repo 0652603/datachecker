@@ -5,8 +5,8 @@ from datetime import datetime
 sync_once_last_execute_time = datetime.now()
 
 # 檢查間隔配置
-check_interval = 15 # 幾秒檢查一次
-check_buffer = 300 # 幾秒鐘緩衝
+check_interval = 5*60 # 幾分鐘檢查一次
+check_buffer = 5*60 # 幾分鐘緩衝
 
 
 # bot webhook:
