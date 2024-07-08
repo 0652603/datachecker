@@ -1,7 +1,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from app.utils.utils import time_fmt
-import app.config.config as config
+import app.config.glob as glob
 
 
 # 一個單例排程器 每隔 interval 秒數 固定執行一次 fn 函數 並更新最後執行時間 檢查時允許誤差在buffer內
@@ -31,7 +31,7 @@ class Once:
     def is_alive(self):
         if self.initflag:
             now = datetime.now()
-            lasttime = config.sync_once_last_execute_time
+            lasttime = glob.sync_once_last_execute_time
             diff = now - lasttime
             if diff.seconds > self.time_with_buffer :
                 return "[請注意排程器可能故障][上次執行時間:{tm}][相距:{df}秒]".format(tm= time_fmt(lasttime), df= diff.seconds)
