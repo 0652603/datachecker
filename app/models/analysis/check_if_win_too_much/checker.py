@@ -13,6 +13,7 @@ def check_if_win_too_much(checktime:datetime):
     data_5_min_CNY = get_transform_all_to_CNY_df(get_DB_5_min_info(host_id='10.97.74.214',now=now))
     # Step 1
     first_judge_df = first_judge_df_RTP_and_NW(data_5_min_CNY,score_threshold=5000,RTP_threshold=1.1) # RTP
+    #first_judge_df = first_judge_df_RTP_and_NW(data_5_min_CNY,score_threshold=40,RTP_threshold=1.1) # test
     '''
     #test
     df=pd.read_excel('D:\\Rudy\\Nex\\風控自動化\\data\\t_game_bet_log_0702_0704_test.xlsx')

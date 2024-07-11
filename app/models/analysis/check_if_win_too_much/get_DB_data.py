@@ -15,6 +15,7 @@ def get_conn_cursor(host_id):
 def get_DB_5_min_info(host_id,now):
     #now = datetime.now()
     time_minus_5_minutes = now - timedelta(minutes=30)
+    #time_minus_5_minutes = now - timedelta(minutes=120)#test
     current_time_str = now.strftime("%Y-%m-%d %H:%M:%S")
     time_minus_5_minutes_str = time_minus_5_minutes.strftime("%Y-%m-%d %H:%M:%S")
     conn,cursor=get_conn_cursor(host_id)
