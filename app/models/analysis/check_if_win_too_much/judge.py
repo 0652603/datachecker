@@ -1,4 +1,4 @@
-from get_DB_data import get_one_user_DB_14_days_info,get_one_user_DB_history_info,build_sql_query
+from app.models.analysis.check_if_win_too_much.get_DB_data import get_one_user_DB_14_days_info,get_one_user_DB_history_info,build_sql_query
 from datetime import datetime, timedelta
 import pandas as pd
 

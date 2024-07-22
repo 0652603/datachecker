@@ -4,9 +4,9 @@ import pymysql.cursors
 from datetime import datetime, timedelta
 import sys
 sys.path.append('app\\models\\analysis\\check_if_win_too_much\\')
-from transform_currency import get_transform_all_to_CNY_df
-from get_DB_data import get_DB_5_min_info
-from judge import first_judge_df_RTP_and_NW,judge_abnormal_player
+from app.models.analysis.check_if_win_too_much.transform_currency import get_transform_all_to_CNY_df
+from app.models.analysis.check_if_win_too_much.get_DB_data import get_DB_5_min_info
+from app.models.analysis.check_if_win_too_much.judge import first_judge_df_RTP_and_NW,judge_abnormal_player
 
 def check_if_win_too_much(checktime:datetime): 
     now = checktime

@@ -16,10 +16,16 @@
 
 - 啟動虛擬環境:
 
-  - Mac/Linux/Git bash
+  - Windows Git bash
 
     ```bash
     source .venv/Scripts/activate
+    ```
+
+  - Mac / Linux (zsh或bash)
+  
+    ```bash
+    source .venv/bin/activate
     ```
 
 - 依照 requirements.txt 下載依賴包:
