@@ -1,8 +1,10 @@
-from app.models.analysis.check_if_win_too_much.get_DB_data import get_one_user_DB_14_days_info,get_one_user_DB_history_info,build_sql_query
+from get_DB_data import get_one_user_DB_14_days_info,get_one_user_DB_history_info,build_sql_query
 from datetime import datetime, timedelta
 import pandas as pd
+from check_folder_and_save_file import save_and_delete_folder_file
 
 def first_judge_df_RTP_and_NW(df,score_threshold=5000,RTP_threshold=1.1):
+    #print('RTP_threshold:',RTP_threshold)
     if df is not None and not df.empty:
         grouped_df = df.groupby(['uid', 'gameName'])[['validBet', 'score']].sum().reset_index()
         grouped_df['RTP'] = (grouped_df['score']+grouped_df['validBet'])/grouped_df['validBet']
@@ -37,16 +39,27 @@ def is_bet_count_enough(df):
     if df is not None and not df.empty:
         game_type=df['game_type'].unique().tolist()[0]
         if game_type=='棋牌':
-            if df.shape[0]>=100:
+            if df.shape[0]>=300:
+            #if df.shape[0]>=30:
             #if df.shape[0]>=0:
                 #print('fit bet count condition')
                 return True
             else:
                 #print('do not fit bet count condition')
                 return False    
-        elif game_type in ['魚機','虎機'] :
+        elif game_type=='魚機' :
             #if df.shape[0]>=0:
-            if df.shape[0]>=500:    
+            if df.shape[0]>=3000:
+            #if df.shape[0]>=30:        
+                #print('fit bet count condition')
+                return True
+            else:
+                #print('do not fit bet count condition')
+                return False
+        elif game_type=='虎機' :
+            #if df.shape[0]>=0:
+            if df.shape[0]>=1500: 
+            #if df.shape[0]>=15:    
                 #print('fit bet count condition')
                 return True
             else:
@@ -129,11 +142,11 @@ def get_df_return_abnormal_info(df):
     if df is not None and not df.empty:
         df.loc[:,'add_time'] = pd.to_datetime(df['add_time'])
         df_top3 = df.groupby(['uid', 'gameName'], group_keys=False).apply(lambda x: x.nlargest(3, 'score'))
-        df_aggregated = df_top3.groupby(['uid', 'gameName'])['roundId'].agg(tuple).reset_index()
+        df_aggregated = df_top3.groupby(['uid', 'gameName','companyId'])['roundId'].agg(tuple).reset_index()
         unique_df = df.loc[df.groupby(['uid', 'gameName'])['add_time'].idxmax()]
         unique_df = df.drop_duplicates(subset=['uid', 'gameName'])
-        unique_df=unique_df[['add_time','uid','agent','gameName','gameId','companyId']]
-        unique_df = pd.merge(unique_df, df_aggregated[['uid','gameName','roundId']], on=['uid', 'gameName'], how='left')
+        unique_df=unique_df[['add_time','uid','agent','gameName','gameId']]
+        unique_df = pd.merge(unique_df, df_aggregated[['uid','gameName','companyId','roundId']], on=['uid', 'gameName'], how='left')
         return unique_df
     else:
         print('no data')
@@ -155,11 +168,10 @@ def check_if_abnormal_player_over_five(unique_df,trigger_time):
     return result
 
 
-def check_win_days_rate(unique_df,trigger_time, data):
+def check_win_days_rate(unique_df,trigger_time, data,_30min_bet_win_score_RTP):
     result = {"is_alert":False, "trigger_time":trigger_time, "source":"","event":"","info":"","url":None}
     if unique_df.shape[0]>0 :
         for index in range(len(unique_df)):
-            
             # 如果太多天都贏:玩家有問題
             one_user_win_days_rate_info=judge_win_days_rate(data["two_week_data"][index])
             
@@ -168,19 +180,24 @@ def check_win_days_rate(unique_df,trigger_time, data):
             #is_enough = is_bet_count_enough(data["two_week_data"][index])#test
            
             if is_enough and (one_user_win_days_rate_info[0]):
-                result['info'] += "[玩家]{uid}\n[遊戲]{game}\n[天數比例]{abinfo_ratio:.0%}\n[贏錢天數]{abinfo_win_days}\n[下注天數]{abinfo_bet_days}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo_ratio= one_user_win_days_rate_info[1],abinfo_win_days=one_user_win_days_rate_info[2],abinfo_bet_days=one_user_win_days_rate_info[3])
+                mask=_30min_bet_win_score_RTP['uid']==data["uid"][index]
+                _30min_uid_data=_30min_bet_win_score_RTP[mask]
+                _30min_uid_validBet=_30min_uid_data.iloc[0]['validBet']
+                _30min_uid_score=_30min_uid_data.iloc[0]['score']
+                _30min_uid_RTP=_30min_uid_data.iloc[0]['RTP']              
+                result['info'] += "[玩家]{uid}\n[遊戲]{game}\n[天數比例]{abinfo_ratio:.0%}\n[贏錢天數]{abinfo_win_days}\n[下注天數]{abinfo_bet_days}\n [近30分鐘投注額]CNY:{_30min_uid_validBet}\n [近30分鐘淨贏分]CNY:{_30min_uid_score}\n [近30分鐘RTP]{_30min_uid_RTP:.0%}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo_ratio= one_user_win_days_rate_info[1],abinfo_win_days=one_user_win_days_rate_info[2],abinfo_bet_days=one_user_win_days_rate_info[3],_30min_uid_validBet=_30min_uid_validBet,_30min_uid_score=_30min_uid_score,_30min_uid_RTP=_30min_uid_RTP)
             
         if len(result["info"])>0 :
             result["is_alert"] = True
-            result["source"] = "全平台"
+            #result["source"] = "全平台"
+            result["source"] = data["company_name"][index]
             result["event"] = "玩家贏錢天數比例太高"
     return result
 
-def check_14_days_score_and_RTP(unique_df,trigger_time, data):
+def check_14_days_score_and_RTP(unique_df,trigger_time, data,_30min_bet_win_score_RTP):
     result = {"is_alert":False, "trigger_time":trigger_time, "source":"","event":"","info":"","url":None}
     if unique_df.shape[0]>0 :
         for index in range(len(unique_df)):
-            
             # 如果近14天贏太多及RTP太高:玩家有問題
             one_user_win_score_and_RTP_info=judge_win_score_and_RTP(data["two_week_data"][index])
             # 如果押注數量夠多(有統計意義)才分析
@@ -188,15 +205,21 @@ def check_14_days_score_and_RTP(unique_df,trigger_time, data):
             #is_enough = True#test
            
             if is_enough and (one_user_win_score_and_RTP_info[0]):
-                result['info'] += "[玩家]{uid}\n[遊戲]{game}\n[淨贏分]CNY:{abinfo_win_score}\n[RTP]{abinfo_RTP:.0%}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo_win_score= one_user_win_score_and_RTP_info[1],abinfo_RTP=one_user_win_score_and_RTP_info[2])
+                mask=_30min_bet_win_score_RTP['uid']==data["uid"][index]
+                _30min_uid_data=_30min_bet_win_score_RTP[mask]
+                _30min_uid_validBet=_30min_uid_data.iloc[0]['validBet']
+                _30min_uid_score=_30min_uid_data.iloc[0]['score']
+                _30min_uid_RTP=_30min_uid_data.iloc[0]['RTP']  
+                result['info'] += "[玩家]{uid}\n[遊戲]{game}\n[淨贏分]CNY:{abinfo_win_score}\n[RTP]{abinfo_RTP:.0%}\n [近30分鐘投注額]CNY:{_30min_uid_validBet}\n [近30分鐘淨贏分]CNY:{_30min_uid_score}\n [近30分鐘RTP]{_30min_uid_RTP:.0%}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo_win_score= one_user_win_score_and_RTP_info[1],abinfo_RTP=one_user_win_score_and_RTP_info[2],_30min_uid_validBet=_30min_uid_validBet,_30min_uid_score=_30min_uid_score,_30min_uid_RTP=_30min_uid_RTP)
             
         if len(result["info"])>0 :
             result["is_alert"] = True
-            result["source"] = "全平台"
+            #result["source"] = "全平台"
+            result["source"] = data["company_name"][index]
             result["event"] = "玩家近14天贏太多及RTP太高"
     return result
 
-def check_win_rate(unique_df,trigger_time, data):
+def check_win_rate(unique_df,trigger_time, data,_30min_bet_win_score_RTP):
     result = {"is_alert":False, "trigger_time":trigger_time, "source":"","event":"","info":"","url":None}
     if unique_df.shape[0]>0 :
         for index in range(len(unique_df)):
@@ -206,16 +229,22 @@ def check_win_rate(unique_df,trigger_time, data):
             # 如果太常贏:玩家有問題
             one_user_win_rate_info=judge_win_rate(data["two_week_data"][index])
             if is_enough and (one_user_win_rate_info[0]):
-                result['info'] += "[玩家]{uid}\n [遊戲]{game}\n [RTP]{abinfo:.0%}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo= one_user_win_rate_info[1])
+                mask=_30min_bet_win_score_RTP['uid']==data["uid"][index]
+                _30min_uid_data=_30min_bet_win_score_RTP[mask]
+                _30min_uid_validBet=_30min_uid_data.iloc[0]['validBet']
+                _30min_uid_score=_30min_uid_data.iloc[0]['score']
+                _30min_uid_RTP=_30min_uid_data.iloc[0]['RTP']  
+                result['info'] += "[玩家]{uid}\n [遊戲]{game}\n [勝率]{abinfo:.0%}\n [近30分鐘投注額]CNY:{_30min_uid_validBet}\n [近30分鐘淨贏分]CNY:{_30min_uid_score}\n [近30分鐘RTP]{_30min_uid_RTP:.0%}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo= one_user_win_rate_info[1],_30min_uid_validBet=_30min_uid_validBet,_30min_uid_score=_30min_uid_score,_30min_uid_RTP=_30min_uid_RTP)
             
         if len(result["info"])>0 :
             result["is_alert"] = True
-            result["source"] = "全平台"
+            #result["source"] = "全平台"
+            result["source"] = data["company_name"][index]
             result["event"] = "玩家贏錢比例太高"
     return result
 
 
-def check_history_rtp(unique_df,trigger_time, data, host_id):
+def check_history_rtp(unique_df,trigger_time, data, host_id,_30min_bet_win_score_RTP):
     result = {"is_alert":False, "trigger_time":trigger_time, "source":"","event":"","info":"","url":None}
     if unique_df.shape[0]>0 :
         for index in range(len(unique_df)):
@@ -225,53 +254,81 @@ def check_history_rtp(unique_df,trigger_time, data, host_id):
             # 如果歷史RTP太高:玩家有問題
             one_user_history_RTP_info= judge_history_RTP(get_one_user_DB_history_info(host_id,data["uid"][index],data["game"][index]))
             if is_enough and (one_user_history_RTP_info[0]):
-                result['info'] += "[玩家]{uid}\n [遊戲]{game}\n [比例]{abinfo:.0%}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo= one_user_history_RTP_info[1])
+                mask=_30min_bet_win_score_RTP['uid']==data["uid"][index]
+                _30min_uid_data=_30min_bet_win_score_RTP[mask]
+                _30min_uid_validBet=_30min_uid_data.iloc[0]['validBet']
+                _30min_uid_score=_30min_uid_data.iloc[0]['score']
+                _30min_uid_RTP=_30min_uid_data.iloc[0]['RTP'] 
+                result['info'] += "[玩家]{uid}\n [遊戲]{game}\n [RTP]{abinfo:.0%}\n [近30分鐘投注額]CNY:{_30min_uid_validBet}\n [近30分鐘淨贏分]CNY:{_30min_uid_score}\n [近30分鐘RTP]{_30min_uid_RTP:.0%}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo= one_user_history_RTP_info[1],_30min_uid_validBet=_30min_uid_validBet,_30min_uid_score=_30min_uid_score,_30min_uid_RTP=_30min_uid_RTP)
             
         if len(result["info"])>0 :
             result["is_alert"] = True
-            result["source"] = "全平台"
+            #result["source"] = "全平台"
+            result["source"] = data["company_name"][index]
             result["event"] = "玩家歷史RTP過高"
     return result
+def get_30min_bet_win_score_RTP(df):
+    _30min_bet_win_score_RTP = df.groupby(['uid', 'gameName'])[['validBet', 'score']].sum().reset_index()
+    _30min_bet_win_score_RTP['score']=round(_30min_bet_win_score_RTP['score'].astype(float),2)
+    _30min_bet_win_score_RTP['validBet']=round(_30min_bet_win_score_RTP['validBet'].astype(float),2)
+    _30min_bet_win_score_RTP['RTP']=1+round(_30min_bet_win_score_RTP['score']/_30min_bet_win_score_RTP['validBet'],2)
+    return _30min_bet_win_score_RTP
+
 
 
 def judge_abnormal_player(df,now):
     result = {"is_alert":False, "trigger_time":now, "source":"","event":"","info":"","url":None}
     if df is not None and not df.empty:
+        #test
+        #save_and_delete_folder_file(df)
+        
         unique_df=get_df_return_abnormal_info(df)
-
+        #計算近30分鐘鐘統計結果
+        _30min_bet_win_score_RTP=get_30min_bet_win_score_RTP(df)
         # Step 1 : 判斷是否太多玩家都異常
+        
         result = check_if_abnormal_player_over_five(unique_df, now)
         if result["is_alert"] :
+            save_and_delete_folder_file(df)
             return result
         
         # Step 1.1 : 玩家數量有限，可以仔細判斷各玩家狀況:
-        data = {"uid":[],"game":[],"two_week_data":[]}
+        data = {"uid":[],"game":[],"two_week_data":[],"company_name":[]}
         host_id='10.97.74.214'
         for index in range(unique_df.__len__()):
-            uid,gameName = unique_df.loc[index,'uid'],unique_df.loc[index,'gameName']
+            uid,gameName,companyId = unique_df.loc[index,'uid'],unique_df.loc[index,'gameName'],unique_df.loc[index,'companyId']
             data["uid"].append(uid)
             data["game"].append(gameName)
+            data["company_name"].append(get_company_name_info(host_id,"usercenter",companyId)['company_name'].tolist()[0])
             data["two_week_data"].append(get_game_type(get_one_user_DB_14_days_info(host_id,uid,gameName,now)))
+        
 
+
+        
         # Step 2 : 如果近14天贏太多且RTP太高:玩家有問題
-        result = check_14_days_score_and_RTP(unique_df, now, data)
+        result = check_14_days_score_and_RTP(unique_df, now, data,_30min_bet_win_score_RTP)
         if result["is_alert"] :
+            save_and_delete_folder_file(df)
             return result
 
         # Step 3 : 如果太多天都贏:玩家有問題
-        result = check_win_days_rate(unique_df, now, data)
+        result = check_win_days_rate(unique_df, now, data,_30min_bet_win_score_RTP)
         if result["is_alert"] :
+            save_and_delete_folder_file(df)
             return result
         
         # Step 4 : 如果太常贏:玩家有問題
-        result = check_win_rate(unique_df, now, data)
+        result = check_win_rate(unique_df, now, data,_30min_bet_win_score_RTP)
         if result["is_alert"] :
+            save_and_delete_folder_file(df)
             return result
         
         # Step 5 : 如果歷史RTP太高:玩家有問題
-        result = check_history_rtp(unique_df, now, data, host_id)
+        result = check_history_rtp(unique_df, now, data, host_id,_30min_bet_win_score_RTP)
         if result["is_alert"] :
+            save_and_delete_folder_file(df)
             return result
+        
         
     return result
 

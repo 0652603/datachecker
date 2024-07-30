@@ -30,4 +30,6 @@ def get_transform_all_to_CNY_df(df):
     df['currency_rate'] = df_currency_rate_list
     df['validBet']      = df['validBet'].astype(float)/df['currency_rate'].astype(float)
     df['score']         = df['score'].astype(float)/df['currency_rate'].astype(float)
+    df.to_csv('app\\static\\data.csv')
+    
     return df
