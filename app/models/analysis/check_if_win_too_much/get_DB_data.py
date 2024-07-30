@@ -124,6 +124,35 @@ def get_company_name_info(host_id,databse_name,company_id):
     result=pd.DataFrame(result)
     return result
 
+def get_t_company_info(host_id,databse_name,table_name):
+    conn,cursor=get_conn_cursor(host_id,databse_name)
+    # 构建 SQL 查询
+    query = (
+        "SELECT company_name,company_id,currency "
+        "FROM {table_name} "
+    ).format(
+        table_name=table_name
+             )
+    cursor.execute(query)
+    result=cursor.fetchall()  
+    conn.close()
+    cursor.close()
+    result=pd.DataFrame(result)
+    return result
+
+def get_t_currency_math_info(host_id,databse_name):
+    conn,cursor=get_conn_cursor(host_id,databse_name)
+    # 构建 SQL 查询
+    query = (
+        "SELECT currency,currency_scale_value "
+        "FROM t_currency_math "
+    )
+    cursor.execute(query)
+    result=cursor.fetchall()  
+    conn.close()
+    cursor.close()
+    result=pd.DataFrame(result)
+    return result
 
 if __name__ == "__main__":
     print(get_one_user_DB_14_days_info(host_id='10.97.74.214',uid=793166,gameName='麻將胡了2'))
