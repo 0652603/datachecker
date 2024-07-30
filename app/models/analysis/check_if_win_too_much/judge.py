@@ -1,4 +1,4 @@
-from get_DB_data import get_one_user_DB_14_days_info,get_one_user_DB_history_info,build_sql_query
+from get_DB_data import get_company_name_info, get_one_user_DB_14_days_info,get_one_user_DB_history_info,build_sql_query
 from datetime import datetime, timedelta
 import pandas as pd
 from check_folder_and_save_file import save_and_delete_folder_file
