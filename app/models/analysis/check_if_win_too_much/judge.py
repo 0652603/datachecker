@@ -267,8 +267,48 @@ def check_history_rtp(unique_df,trigger_time, data, host_id,_30min_bet_win_score
             result["source"] = data["company_name"][index]
             result["event"] = "玩家歷史RTP過高"
     return result
+
+def check_30min_ip_number(unique_df, trigger_time,data,_30min_bet_win_score_RTP):
+    result = {"is_alert":False, "trigger_time":trigger_time, "source":"","event":"","info":"","url":None}
+    if unique_df.shape[0]>0 :
+        for index in range(len(unique_df)):
+            mask=_30min_bet_win_score_RTP['uid']==data["uid"][index]
+            ip_numbers= _30min_bet_win_score_RTP[mask]['ip_change_count'].tolist()[0]
+            #print(ip_numbers)
+            if ip_numbers>5:
+                mask=_30min_bet_win_score_RTP['uid']==data["uid"][index]
+                _30min_uid_data=_30min_bet_win_score_RTP[mask]
+                _30min_uid_validBet=_30min_uid_data.iloc[0]['validBet']
+                _30min_uid_score=_30min_uid_data.iloc[0]['score']
+                _30min_uid_RTP=_30min_uid_data.iloc[0]['RTP'] 
+                result['info'] += "[玩家]{uid}\n [遊戲]{game}\n [近30分鐘切換IP數量]{abinfo}\n [近30分鐘投注額]CNY:{_30min_uid_validBet}\n [近30分鐘淨贏分]CNY:{_30min_uid_score}\n [近30分鐘RTP]{_30min_uid_RTP:.0%}\n------------\n".format(uid= data["uid"][index], game= data["game"][index], abinfo=ip_numbers,_30min_uid_validBet=_30min_uid_validBet,_30min_uid_score=_30min_uid_score,_30min_uid_RTP=_30min_uid_RTP)
+            
+        if len(result["info"])>0 :
+            result["is_alert"] = True
+            #result["source"] = "全平台"
+            result["source"] = data["company_name"][index]
+            result["event"] = "IP頻繁切換"
+    return result
+
+# 计算 ip 变化次数的函数
+def count_ip_changes(group):
+    # 进行时间排序，只在函数内影响分组数据
+    group_sorted = group.sort_values(by='add_time')
+    # 计算 ip 变化次数
+    ip_changes = group_sorted['ip'].ne(group_sorted['ip'].shift()).sum() - 1
+    return ip_changes
+
+
+
 def get_30min_bet_win_score_RTP(df):
+    # 计算每个 uid 和 gameName 下不同的 ip 数量
+    #ip_counts = df.groupby(['uid', 'gameName'])['ip'].nunique().reset_index()
+    # 计算每个 (uid, gameName) 组的 ip 变化次数
+    ip_change_count = df.groupby(['uid', 'gameName']).apply(count_ip_changes).reset_index(name='ip_change_count')
+    ip_change_count.rename(columns={'ip': 'ip_change_count'}, inplace=True)
     _30min_bet_win_score_RTP = df.groupby(['uid', 'gameName'])[['validBet', 'score']].sum().reset_index()
+    # 合并计算结果
+    _30min_bet_win_score_RTP = pd.merge(_30min_bet_win_score_RTP, ip_change_count, on=['uid', 'gameName'])
     _30min_bet_win_score_RTP['score']=round(_30min_bet_win_score_RTP['score'].astype(float),2)
     _30min_bet_win_score_RTP['validBet']=round(_30min_bet_win_score_RTP['validBet'].astype(float),2)
     _30min_bet_win_score_RTP['RTP']=1+round(_30min_bet_win_score_RTP['score']/_30min_bet_win_score_RTP['validBet'],2)
@@ -280,7 +320,7 @@ def judge_abnormal_player(df,now):
     result = {"is_alert":False, "trigger_time":now, "source":"","event":"","info":"","url":None}
     if df is not None and not df.empty:
         #test
-        #save_and_delete_folder_file(df)
+        #print(df)
         
         unique_df=get_df_return_abnormal_info(df)
         #計算近30分鐘鐘統計結果
@@ -301,16 +341,22 @@ def judge_abnormal_player(df,now):
             data["game"].append(gameName)
             data["company_name"].append(get_company_name_info(host_id,"usercenter",companyId)['company_name'].tolist()[0])
             data["two_week_data"].append(get_game_type(get_one_user_DB_14_days_info(host_id,uid,gameName,now)))
-        
-
-
-        
-        # Step 2 : 如果近14天贏太多且RTP太高:玩家有問題
-        result = check_14_days_score_and_RTP(unique_df, now, data,_30min_bet_win_score_RTP)
+        #save_and_delete_folder_file(df)
+        # Step 1.2 : IP更換頻繁:玩家有問題
+        result = check_30min_ip_number(unique_df, now,data,_30min_bet_win_score_RTP)
         if result["is_alert"] :
             save_and_delete_folder_file(df)
             return result
 
+
+        
+        # Step 2 : 如果近14天贏太多且RTP太高:玩家有問題
+        '''
+        result = check_14_days_score_and_RTP(unique_df, now, data,_30min_bet_win_score_RTP)
+        if result["is_alert"] :
+            save_and_delete_folder_file(df)
+            return result
+        '''
         # Step 3 : 如果太多天都贏:玩家有問題
         result = check_win_days_rate(unique_df, now, data,_30min_bet_win_score_RTP)
         if result["is_alert"] :

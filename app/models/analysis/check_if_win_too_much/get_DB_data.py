@@ -15,13 +15,15 @@ def get_conn_cursor(host_id,databse_name='log'):
 def get_DB_5_min_info(host_id,now):
     
     #now = datetime.now()
+    #now = datetime(2024, 8, 6, 19, 49, 0)
     time_minus_5_minutes = now - timedelta(minutes=30)
+    #Ztime_minus_5_minutes = now - timedelta(minutes=90)
     #time_minus_5_minutes = now - timedelta(minutes=120)#test
     current_time_str = now.strftime("%Y-%m-%d %H:%M:%S")
     time_minus_5_minutes_str = time_minus_5_minutes.strftime("%Y-%m-%d %H:%M:%S")
     conn,cursor=get_conn_cursor(host_id)
     query = (
-    "SELECT uid, companyId, agent, validBet, score, add_time, gameName,gameId,roundId "
+    "SELECT uid, companyId, agent, validBet, score, add_time, gameName,gameId,roundId,ip "
     "FROM t_game_bet_log "
     "WHERE add_time >= '{time_minus_5_minutes_str}' "
     "AND add_time <= '{current_time_str}'"
