@@ -39,3 +39,5 @@
     ```bash
     pip freeze > requirements.txt
     ```
+
+- Rudy 是天才
