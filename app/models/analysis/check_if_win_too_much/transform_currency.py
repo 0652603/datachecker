@@ -1,5 +1,5 @@
 import pandas as pd
-from get_DB_data import get_t_company_info,get_t_currency_math_info
+from get_DB_data import get_t_company_info_to_transform_currency,get_t_currency_math_info
 import re
 
 def contains_hash_like_strings(my_string):
@@ -10,8 +10,8 @@ def contains_hash_like_strings(my_string):
         return True
     else:
         return False
-def trans_form_hash_currency_to_USD(host_id='10.97.74.214',databse_name='usercenter',table_name='t_company'):
-    t_company_info=get_t_company_info(host_id=host_id,databse_name=databse_name,table_name=table_name)
+def trans_form_hash_currency_to_USD(company_id_tuple,host_id='10.97.74.214',databse_name='usercenter',table_name='t_company'):
+    t_company_info=get_t_company_info_to_transform_currency(host_id=host_id,databse_name=databse_name,table_name=table_name,company_id_tuple=company_id_tuple)
     for index in range(t_company_info.shape[0]):
         if contains_hash_like_strings(t_company_info.loc[index,'company_name']):
             #print(index)
@@ -20,8 +20,8 @@ def trans_form_hash_currency_to_USD(host_id='10.97.74.214',databse_name='usercen
     return  t_company_info    
 
            
-def get_currency_rate(path='app\\static\\',filename='company.xlsx'):
-    t_company_info=trans_form_hash_currency_to_USD(host_id='10.97.74.214',databse_name='usercenter',table_name='t_company')
+def get_currency_rate(company_id_tuple,path='app\\static\\',filename='company.xlsx'):
+    t_company_info=trans_form_hash_currency_to_USD(company_id_tuple,host_id='10.97.74.214',databse_name='usercenter',table_name='t_company')
     company_currency    = t_company_info
     currency_rate       = get_t_currency_math_info(host_id='10.97.74.214',databse_name='usercenter')
     currency_rate       = currency_rate[['currency','currency_scale_value']]
@@ -36,8 +36,8 @@ def get_currency_rate(path='app\\static\\',filename='company.xlsx'):
                 company_currency.loc[index,'currency_rate']=currency_value_list[currency_list_index]
     return company_currency
 
-def get_transform_all_to_CNY_df(df):
-    company_currency      = get_currency_rate()
+def get_transform_all_to_CNY_df(df,company_id_tuple):
+    company_currency      = get_currency_rate(company_id_tuple)
     company_id_list       = company_currency['company_id'].tolist()
     currency_rate_list    = company_currency['currency_rate'].tolist()
     df_company_id_list    = df['companyId'].tolist()

@@ -6,7 +6,7 @@ sync_once_last_execute_time = datetime.now()
 
 # 檢查間隔配置
 check_interval = 5*60    # 幾分鐘檢查一次
-#check_interval = 15 # test
+
 check_buffer = 5*60 # 幾分鐘緩衝
 
 
