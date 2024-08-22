@@ -8,7 +8,7 @@ our_game_id_tuple=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
                       122, 125, 126, 127, 129, 132, 201, 202, 203, 204, 205, 301, 302, 303, 304, 305, 306, 307, 308, 
                       309, 310, 311, 312, 313, 314, 315, 316, 320, 323, 324, 801, 802, 803, 804, 901, 902, 903, 904)
 def get_conn_cursor(host_id,databse_name='log'):
-    conn = pymysql.connect(host = host_id, port = 3310, user = 'query1', password = 'query666!!P', 
+    conn = pymysql.connect(host = host_id, port = 3320, user = 'query1', password = 'query666!!P', 
                         database = databse_name, charset = 'utf8mb4', autocommit = True)
     cursor = conn.cursor(cursor = pymysql.cursors.DictCursor)
     return conn,cursor
