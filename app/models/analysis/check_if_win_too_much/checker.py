@@ -14,11 +14,12 @@ def check_if_win_too_much(checktime:datetime):
     company_id_tuple=get_company_id_tuple()
     data_origin=get_DB_5_min_info(host_id='10.97.74.214',now=now,company_id_tuple=company_id_tuple)
     data_5_min_CNY = get_transform_all_to_CNY_df(data_origin,company_id_tuple)
+
     # Step 1
     first_judge_df = first_judge_df_RTP_and_NW(data_5_min_CNY,score_threshold=5000,RTP_threshold=1.1) # RTP
-    
+    #print(first_judge_df)
     #result=judge_abnormal_player(first_judge_df,now=now,company_id_tuple=company_id_tuple)
-    #print(result)
+    #print("result is ",result)
     #return result
     #return {"is_alert":False, "trigger_time":now, "source":"","event":"","info":"","url":None} #for test
     # Step 2

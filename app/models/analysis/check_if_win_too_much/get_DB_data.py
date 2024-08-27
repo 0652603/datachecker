@@ -3,6 +3,7 @@ import pymysql
 import pymysql.cursors
 from datetime import datetime, timedelta
 import re
+
 our_game_id_tuple=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 
                       27, 28, 29, 30, 31, 32, 33, 34, 35, 40, 41, 42, 43, 105, 109, 110, 111, 112, 113, 114, 115, 117, 
                       122, 125, 126, 127, 129, 132, 201, 202, 203, 204, 205, 301, 302, 303, 304, 305, 306, 307, 308, 
@@ -34,7 +35,7 @@ def get_company_id_tuple(host_id='10.97.74.214',databse_name='usercenter',table_
 def get_DB_5_min_info(host_id,now,company_id_tuple):
     
     #now = datetime.now()
-    #now = datetime(2024, 8, 21, 15, 37, 0) #test
+    #now = datetime(2024, 8, 27, 20, 15, 13) #test
     time_minus_5_minutes = now - timedelta(minutes=30)
     #Ztime_minus_5_minutes = now - timedelta(minutes=90)
     #time_minus_5_minutes = now - timedelta(minutes=120)#test
@@ -64,6 +65,7 @@ def get_DB_5_min_info(host_id,now,company_id_tuple):
     return result
 def get_one_user_DB_14_days_info(host_id,uid,gameName,now,company_id_tuple):
     #now = datetime.now()
+    #now = datetime(2024, 8, 27, 20, 15, 13) #test
     start_of_today = datetime(now.year, now.month, now.day)
     start_of_14_days_ago = start_of_today - timedelta(days=14)
     current_time_str = now.strftime("%Y-%m-%d %H:%M:%S")

@@ -2,6 +2,7 @@ from get_DB_data import get_company_name_info, get_one_user_DB_14_days_info,get_
 from datetime import datetime, timedelta
 import pandas as pd
 from check_folder_and_save_file import save_and_delete_folder_file
+from transform_currency import get_transform_all_to_CNY_df
 
 def first_judge_df_RTP_and_NW(df,score_threshold=5000,RTP_threshold=1.1):
     #print('RTP_threshold:',RTP_threshold)
@@ -256,7 +257,9 @@ def check_history_rtp(unique_df,trigger_time, data, host_id,_30min_bet_win_score
             is_enough = is_bet_count_enough(data["two_week_data"][index])
                 
             # 如果歷史RTP太高:玩家有問題
-            one_user_history_RTP_info= judge_history_RTP(get_one_user_DB_history_info(host_id,data["uid"][index],data["game"][index],company_id_tuple))
+            one_user_DB_history_info=get_one_user_DB_history_info(host_id,data["uid"][index],data["game"][index],company_id_tuple)
+            one_user_DB_history_info=get_transform_all_to_CNY_df(one_user_DB_history_info,company_id_tuple)
+            one_user_history_RTP_info= judge_history_RTP(one_user_DB_history_info)
             if is_enough and (one_user_history_RTP_info[0]):
                 mask=_30min_bet_win_score_RTP['uid']==data["uid"][index]
                 _30min_uid_data=_30min_bet_win_score_RTP[mask]
@@ -349,7 +352,10 @@ def judge_abnormal_player(df,now,company_id_tuple):
             data["uid"].append(uid)
             data["game"].append(gameName)
             data["company_name"].append(get_company_name_info(host_id,"usercenter",companyId)['company_name'].tolist()[0])
-            data["two_week_data"].append(get_game_type(get_one_user_DB_14_days_info(host_id,uid,gameName,now,company_id_tuple)))
+            one_user_DB_14_days_info=get_one_user_DB_14_days_info(host_id,uid,gameName,now,company_id_tuple)
+            one_user_DB_14_days_info=get_transform_all_to_CNY_df(one_user_DB_14_days_info,company_id_tuple)
+            data["two_week_data"].append(get_game_type(one_user_DB_14_days_info))
+
         #save_and_delete_folder_file(df)
         # Step 1.2 : IP更換頻繁:玩家有問題
         result = check_30min_ip_number(unique_df, now,data,_30min_bet_win_score_RTP)
