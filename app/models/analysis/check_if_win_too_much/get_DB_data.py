@@ -34,8 +34,8 @@ def get_company_id_tuple(host_id='10.97.74.214',databse_name='usercenter',table_
 
 def get_DB_5_min_info(host_id,now,company_id_tuple):
     
-    #now = datetime.now()
-    #now = datetime(2024, 8, 27, 20, 15, 13) #test
+    now = datetime.now()
+    #now = datetime(2024, 9, 21, 14, 56, 3) #test
     time_minus_5_minutes = now - timedelta(minutes=30)
     #Ztime_minus_5_minutes = now - timedelta(minutes=90)
     #time_minus_5_minutes = now - timedelta(minutes=120)#test

@@ -11,5 +11,5 @@ check_buffer = 5*60 # 幾分鐘緩衝
 
 
 # bot webhook:
-lark_webhook_url = 'https://open.larksuite.com/open-apis/bot/v2/hook/f1444632-a83c-44c8-9576-6d444e2c5428'
-
+#lark_webhook_url = 'https://open.larksuite.com/open-apis/bot/v2/hook/f1444632-a83c-44c8-9576-6d444e2c5428'
+lark_webhook_url ='https://open.larksuite.com/open-apis/bot/v2/hook/733ed977-254b-49d7-97b2-f06c066da81f'
